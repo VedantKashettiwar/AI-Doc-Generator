@@ -35,7 +35,7 @@ class AIService {
         messages: [
           {
             role: "system",
-            content: "You are a senior software engineer specializing in creating clear, structured technical documentation. Always respond with valid JSON format."
+            content: "You are a senior software engineer specializing in creating clear, structured technical documentation. Respond with a professional, human-readable document using Markdown format. Do NOT use JSON. Use headings, bullet points, and code blocks where appropriate."
           },
           {
             role: "user",
@@ -98,7 +98,7 @@ Please analyze this markdown and return a well-formatted technical document with
 - [Important note 1]
 - [Important note 2]
 
-Please provide a clean, professional document format that can be easily read and understood.`;
+Please provide a clean, professional document format that can be easily read and understood. Use Markdown, not JSON.`;
   }
 }
 

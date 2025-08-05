@@ -1,7 +1,73 @@
 const fs = require('fs');
 const path = require('path');
+const PDFDocument = require('pdfkit');
 const aiService = require('../services/aiService');
-const s3Service = require('../services/s3Service');
+
+function renderStructuredTextToPDF(doc, text) {
+  const lines = text.split(/\r?\n/);
+  let inList = false;
+  let inCodeBlock = false;
+  let codeBlockBuffer = [];
+  lines.forEach((line, idx) => {
+    // Detect start/end of code block (``` or ```lang)
+    if (/^```/.test(line.trim())) {
+      if (!inCodeBlock) {
+        inCodeBlock = true;
+        codeBlockBuffer = [];
+        doc.moveDown(0.5); // Extra space before code block
+      } else {
+        // End of code block, render it
+        inCodeBlock = false;
+        if (codeBlockBuffer.length > 0) {
+          doc.font('Courier').fontSize(11).fillColor('#222').text(codeBlockBuffer.join('\n'), {
+            indent: 30,
+            width: 440,
+            align: 'left',
+            lineGap: 1.5
+          });
+          doc.moveDown(0.5); // Extra space after code block
+        }
+        codeBlockBuffer = [];
+      }
+      return;
+    }
+    if (inCodeBlock) {
+      codeBlockBuffer.push(line);
+      return;
+    }
+    if (/^# (.*)/.test(line)) {
+      if (inList) { doc.moveDown(0.5); inList = false; }
+      doc.moveDown(1).font('Times-Bold').fontSize(22).fillColor('black').text(line.replace(/^# /, ''), {align: 'left'});
+      doc.moveDown(0.5);
+    } else if (/^## (.*)/.test(line)) {
+      if (inList) { doc.moveDown(0.5); inList = false; }
+      doc.moveDown(0.5).font('Times-Bold').fontSize(16).fillColor('black').text(line.replace(/^## /, ''), {align: 'left'});
+      doc.moveDown(0.2);
+    } else if (/^### (.*)/.test(line)) {
+      if (inList) { doc.moveDown(0.5); inList = false; }
+      doc.moveDown(0.2).font('Times-Bold').fontSize(13).fillColor('black').text(line.replace(/^### /, ''), {align: 'left'});
+    } else if (/^- (.*)/.test(line)) {
+      if (!inList) { doc.moveDown(0.1); inList = true; }
+      doc.font('Times-Roman').fontSize(12).fillColor('black').text('• ' + line.replace(/^- /, ''), {indent: 20});
+    } else if (/^\s*$/.test(line)) {
+      if (inList) { doc.moveDown(0.5); inList = false; }
+      doc.moveDown(0.3);
+    } else {
+      if (inList) { doc.moveDown(0.5); inList = false; }
+      doc.font('Times-Roman').fontSize(12).fillColor('black').text(line, {width: 480, align: 'left'});
+    }
+  });
+  // If file ends while still in code block
+  if (inCodeBlock && codeBlockBuffer.length > 0) {
+    doc.font('Courier').fontSize(11).fillColor('#222').text(codeBlockBuffer.join('\n'), {
+      indent: 30,
+      width: 440,
+      align: 'left',
+      lineGap: 1.5
+    });
+    doc.moveDown(0.5);
+  }
+}
 
 class DocController {
   /**
@@ -41,30 +107,37 @@ class DocController {
       // Process with AI
       const documentation = await aiService.generateDocumentation(markdownContent);
 
-      // Check if S3 is available
-      if (!s3Service.isConfigured()) {
-        return res.status(500).json({
-          success: false,
-          error: 'S3 service is not configured. Please configure AWS credentials in your .env file.',
-          details: 'See S3_SETUP.md for setup instructions'
-        });
+      // Save documentation as PDF locally
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+      const outputDir = path.join(__dirname, '../uploads');
+      if (!fs.existsSync(outputDir)) {
+        fs.mkdirSync(outputDir);
       }
+      const outputFilename = `${timestamp}_${req.file.originalname.replace(/\.md|\.markdown/, '_documentation.pdf')}`;
+      const outputPath = path.join(outputDir, outputFilename);
 
-      // Upload to S3 and get download link
-      const uploadResult = await s3Service.uploadDocument(documentation, req.file.originalname);
+      // Create PDF
+      const doc = new PDFDocument({margin: 40});
+      const writeStream = fs.createWriteStream(outputPath);
+      doc.pipe(writeStream);
+      renderStructuredTextToPDF(doc, documentation);
+      doc.end();
 
-      // Return JSON with download link
-      res.json({
-        success: true,
-        message: 'Document generated and uploaded successfully',
-        data: {
-          downloadUrl: uploadResult.downloadUrl,
-          filename: uploadResult.filename,
-          fileKey: uploadResult.fileKey,
-          expiresAt: uploadResult.expiresAt,
-          originalFile: req.file.originalname,
-          timestamp: uploadResult.timestamp
-        }
+      // Wait for PDF to finish writing
+      writeStream.on('finish', () => {
+        res.json({
+          success: true,
+          message: 'Document generated and saved as PDF locally',
+          data: {
+            localPath: `uploads/${outputFilename}`,
+            filename: outputFilename,
+            originalFile: req.file.originalname,
+            timestamp: timestamp
+          }
+        });
+      });
+      writeStream.on('error', (err) => {
+        throw err;
       });
 
     } catch (error) {

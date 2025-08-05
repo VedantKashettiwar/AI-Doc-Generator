@@ -1,12 +1,13 @@
 # AI Documentation Generator
 
-An MVP web application that processes markdown files using OpenAI GPT-4 to generate structured technical documentation.
+An MVP web application that processes markdown files using OpenAI GPT-4 to generate structured technical documentation and saves them locally.
 
 ## 🚀 Features
 
 - **File Upload API**: Accept `.md` files via POST request
 - **AI Integration**: Uses OpenAI GPT-4 for intelligent documentation generation
-- **Structured Output**: Returns clean JSON with module summary, features, inputs/outputs, dependencies, and notes
+- **Local Output**: Saves generated documentation as a `.txt` file in the `uploads/` directory
+- **Structured Output**: Returns clean JSON with local file path and metadata
 - **MVC Architecture**: Clean, maintainable code structure
 - **Security**: Rate limiting, CORS, and input validation
 
@@ -22,7 +23,7 @@ mvc-ai-docgen/
 │   └── docRoutes.js          # API route definitions
 ├── services/
 │   └── aiService.js          # OpenAI integration
-├── uploads/                  # Temporary file storage
+├── uploads/                  # Output directory for generated documentation
 ├── .env                      # Environment variables
 ├── app.js                    # Express app configuration
 ├── server.js                 # Server entry point
@@ -39,13 +40,13 @@ npm install
 
 ### 2. Environment Configuration
 
-Copy the example environment file and configure your OpenAI API key:
+Copy the example environment file and configure your API keys:
 
 ```bash
 cp env.example .env
 ```
 
-Edit `.env` and add your OpenAI API key:
+Edit `.env` and add your API keys:
 
 ```env
 OPENAI_API_KEY=your-openai-api-key-here
@@ -96,12 +97,10 @@ Content-Type: multipart/form-data
 ```json
 {
   "success": true,
-  "message": "Document generated and uploaded successfully",
+  "message": "Document generated and saved locally",
   "data": {
-    "downloadUrl": "https://your-bucket.s3.amazonaws.com/documents/2024-01-01T12-00-00-000Z_uuid_filename_documentation.txt?signature=...",
-    "filename": "2024-01-01T12-00-00-000Z_uuid_filename_documentation.txt",
-    "fileKey": "documents/2024-01-01T12-00-00-000Z_uuid_filename_documentation.txt",
-    "expiresAt": "2024-01-02T12:00:00.000Z",
+    "localPath": "uploads/2024-01-01T12-00-00-000Z_sample_documentation.txt",
+    "filename": "2024-01-01T12-00-00-000Z_sample_documentation.txt",
     "originalFile": "sample.md",
     "timestamp": "2024-01-01T12-00-00-000Z"
   }
@@ -109,8 +108,7 @@ Content-Type: multipart/form-data
 ```
 
 **Note:** 
-- All documents are uploaded to S3 with unique timestamps
-- Download links are valid for 24 hours
+- All documents are saved in the `uploads/` directory with unique timestamps
 - Filenames include timestamp for uniqueness
 
 ## 🧪 Testing with Postman
@@ -129,7 +127,7 @@ Content-Type: multipart/form-data
 
 ### 3. Using curl
 ```bash
-# Upload and get S3 download link
+# Upload and get local file path
 curl -X POST http://localhost:3000/api/docs/upload \
   -F "markdown=@sample.md"
 
@@ -239,10 +237,6 @@ Authenticates a user and returns a JWT token.
 | `NODE_ENV` | development | Environment mode |
 | `RATE_LIMIT_WINDOW_MS` | 900000 | Rate limit window (15 minutes) |
 | `RATE_LIMIT_MAX_REQUESTS` | 100 | Max requests per window |
-| `AWS_ACCESS_KEY_ID` | - | AWS Access Key ID (required) |
-| `AWS_SECRET_ACCESS_KEY` | - | AWS Secret Access Key (required) |
-| `AWS_REGION` | us-east-1 | AWS Region |
-| `AWS_S3_BUCKET_NAME` | - | S3 Bucket name (required) |
 
 ### File Upload Limits
 

@@ -18,21 +18,6 @@ app.listen(PORT, () => {
   } else {
     console.log('✅ OpenAI API key is configured.');
   }
-
-  // Check if S3 is configured
-  try {
-    const s3Service = require('./services/s3Service');
-    if (!s3Service.isConfigured()) {
-      console.warn('⚠️  Warning: AWS S3 is not configured. The application will start but uploads will fail.');
-      console.warn('   To enable S3 upload, configure AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, and AWS_S3_BUCKET_NAME in your .env file.');
-      console.warn('   See S3_SETUP.md for detailed setup instructions.');
-    } else {
-      console.log('✅ S3 configuration detected. Documents will be uploaded to S3 bucket.');
-    }
-  } catch (error) {
-    console.warn('⚠️  Warning: S3 service could not be loaded. The application will start but uploads will fail.');
-    console.warn('   Error:', error.message);
-  }
 });
 
 // Graceful shutdown

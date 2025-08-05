@@ -7,7 +7,7 @@
 - ✅ **models/docModel.js** - Database model (empty for future DB support)
 - ✅ **routes/docRoutes.js** - API route definitions
 - ✅ **services/aiService.js** - OpenAI integration
-- ✅ **uploads/** - Temporary file storage directory
+- ✅ **uploads/** - Output directory for generated documentation
 - ✅ **app.js** - Express app configuration
 - ✅ **server.js** - Server entry point
 
@@ -15,8 +15,8 @@
 - ✅ **File Upload API** - Accept `.md` files via POST request using multer
 - ✅ **Markdown Reading** - Read contents of uploaded files
 - ✅ **AI Integration** - OpenAI GPT-4 integration for documentation generation
-- ✅ **S3 Integration** - Upload generated documents to AWS S3 bucket with unique timestamps
-- ✅ **Structured Output** - Returns JSON with S3 download link and metadata
+- ✅ **Local Output** - Save generated documentation as a `.txt` file in the `uploads/` directory
+- ✅ **Structured Output** - Returns JSON with local file path and metadata
 
 ### 🛡️ Security & Best Practices
 - ✅ **Rate Limiting** - Express rate limiter
@@ -31,7 +31,6 @@
 - ✅ **env.example** - Environment variables template
 - ✅ **.gitignore** - Git ignore rules
 - ✅ **README.md** - Comprehensive documentation
-- ✅ **S3_SETUP.md** - AWS S3 setup guide
 
 ### 🧪 Testing & Development
 - ✅ **Health Check Endpoint** - `GET /api/docs/health`
@@ -64,16 +63,12 @@ npm run setup
 # Or manually:
 npm install
 cp env.example .env
-# Edit .env and add your OpenAI API key
+# Edit .env and add your API keys
 ```
 
 ### 2. Start Server
 ```bash
-# Development mode
 npm run dev
-
-# Production mode
-npm start
 ```
 
 ### 3. Test API
@@ -97,12 +92,10 @@ curl http://localhost:3000/api/docs/health
 ```json
 {
   "success": true,
-  "message": "Document generated and uploaded successfully",
+  "message": "Document generated and saved locally",
   "data": {
-    "downloadUrl": "https://your-bucket.s3.amazonaws.com/documents/2024-01-01T12-00-00-000Z_uuid_filename_documentation.txt?signature=...",
-    "filename": "2024-01-01T12-00-00-000Z_uuid_filename_documentation.txt",
-    "fileKey": "documents/2024-01-01T12-00-00-000Z_uuid_filename_documentation.txt",
-    "expiresAt": "2024-01-02T12:00:00.000Z",
+    "localPath": "uploads/2024-01-01T12-00-00-000Z_sample_documentation.txt",
+    "filename": "2024-01-01T12-00-00-000Z_sample_documentation.txt",
     "originalFile": "sample.md",
     "timestamp": "2024-01-01T12-00-00-000Z"
   }
@@ -110,8 +103,7 @@ curl http://localhost:3000/api/docs/health
 ```
 
 **Note:** 
-- All documents are uploaded to S3 with unique timestamps
-- Download links are valid for 24 hours
+- All documents are saved in the `uploads/` directory with unique timestamps
 - Filenames include timestamp for uniqueness
 
 ## 🔧 Environment Variables
@@ -121,10 +113,6 @@ curl http://localhost:3000/api/docs/health
 | `OPENAI_API_KEY` | Yes | Your OpenAI API key |
 | `PORT` | No | Server port (default: 3000) |
 | `NODE_ENV` | No | Environment mode (default: development) |
-| `AWS_ACCESS_KEY_ID` | Yes | AWS Access Key ID |
-| `AWS_SECRET_ACCESS_KEY` | Yes | AWS Secret Access Key |
-| `AWS_REGION` | No | AWS Region (default: us-east-1) |
-| `AWS_S3_BUCKET_NAME` | Yes | S3 Bucket name |
 
 ## 📊 File Structure
 
@@ -138,17 +126,17 @@ mvc-ai-docgen/
 │   └── docRoutes.js          # API routes
 ├── services/
 │   └── aiService.js          # OpenAI integration
-├── uploads/                  # Temporary file storage
+├── uploads/                  # Output directory for generated documentation
 ├── .env                      # Environment variables
 ├── env.example               # Environment template
-├── .gitignore               # Git ignore rules
-├── app.js                   # Express app
-├── server.js                # Server entry point
-├── package.json             # Dependencies
-├── README.md                # Documentation
-├── sample.md                # Test markdown file
-├── test-api.js              # API test script
-├── setup.sh                 # Setup script
+├── .gitignore                # Git ignore rules
+├── app.js                    # Express app
+├── server.js                 # Server entry point
+├── package.json              # Dependencies
+├── README.md                 # Documentation
+├── sample.md                 # Test markdown file
+├── test-api.js               # API test script
+├── setup.sh                  # Setup script
 └── AI_Doc_Generator.postman_collection.json
 ```
 
@@ -158,6 +146,7 @@ mvc-ai-docgen/
 - ✅ **Markdown Reading** - File content processing
 - ✅ **AI Integration** - OpenAI GPT-4 for documentation generation
 - ✅ **Structured Output** - Formatted document with all required fields
+- ✅ **Local Output** - Saves documents locally in `uploads/`
 - ✅ **MVC Architecture** - Clean, maintainable structure
 - ✅ **Security** - Rate limiting, validation, error handling
 - ✅ **Documentation** - Comprehensive README and setup instructions

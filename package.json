@@ -9,22 +9,28 @@
     "test": "node test-api.js",
     "setup": "./setup.sh"
   },
-  "keywords": ["documentation", "ai", "openai", "markdown", "api"],
+  "keywords": [
+    "documentation",
+    "ai",
+    "openai",
+    "markdown",
+    "api"
+  ],
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "express": "^4.18.2",
-    "multer": "^1.4.5-lts.1",
-    "openai": "^4.20.1",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
-    "helmet": "^7.1.0",
+    "express": "^4.18.2",
     "express-rate-limit": "^7.1.5",
-    "@aws-sdk/client-s3": "^3.470.0",
-    "@aws-sdk/s3-request-presigner": "^3.470.0",
+    "googleapis": "^128.0.0",
+    "helmet": "^7.1.0",
+    "multer": "^1.4.5-lts.1",
+    "openai": "^4.20.1",
+    "pdfkit": "^0.17.1",
     "uuid": "^9.0.1"
   },
   "devDependencies": {
     "nodemon": "^3.0.2"
   }
-} 
+}
